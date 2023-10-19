@@ -14,6 +14,12 @@ This Java program allows you to download YouTube videos in MP4 and MP3 formats. 
 - Download videos from a list specified in a text file.
 - Change configuration settings for the downloader.
 
+## Requirements
+- java 11
+- ffmpeg
+- youtube-dl
+
+
 ## Getting Started
 
 These instructions will help you get a copy of the project up and running on your local machine for development and testing purposes.
