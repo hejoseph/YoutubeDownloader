@@ -22,7 +22,7 @@ public class Configuration {
     }
 
     public String getOutput(){
-        return this.destinationFolderName+this.downloadedFileName.replace(" ", "");
+        return this.destinationFolderName+"\\"+this.downloadedFileName.replace(" ", "");
     }
 
     public String getDestinationFolderName() {
@@ -128,5 +128,9 @@ public class Configuration {
         config.setProperty(key, value);
         saveConfigFile();
         loadConfigFile();
+    }
+
+    public String getValue(String key){
+        return (String)config.get(key);
     }
 }

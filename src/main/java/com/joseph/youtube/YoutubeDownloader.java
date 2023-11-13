@@ -6,11 +6,15 @@ import com.joseph.youtube.config.Timer;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Properties;
+import java.util.Date;
 import java.util.Scanner;
 
 public class YoutubeDownloader {
 
+    public final String DEFAULT_LIST_FILE = "defaultListFile";
+    public final String ONLY_NEW_VIDEOS_KEY = "downloadOnlyNewVideos";
+
+    public final String historyFilePath = "ids.txt";
 
     String configFile = "config.properties";
 
@@ -26,7 +30,6 @@ public class YoutubeDownloader {
     }
 
     public static void main(String[] args) {
-
         YoutubeDownloader yt = new YoutubeDownloader();
     }
 
@@ -47,7 +50,7 @@ public class YoutubeDownloader {
             switch (choice) {
                 case "1":
                     Timer.start();
-                    downloadVideoMP4(false);
+                    checkAndDownloadVideoMP4(false);
                     Timer.stop();
                     break;
                 case "2":
@@ -56,7 +59,7 @@ public class YoutubeDownloader {
                     Timer.stop();
                     break;
                 case "3":
-                    downloadVideoMP4(true);
+                    checkAndDownloadVideoMP4(true);
                     break;
                 case "4":
                     downloadVideoMP4FromFile();
@@ -71,18 +74,44 @@ public class YoutubeDownloader {
     }
 
     private void downloadVideoMP4FromFile() {
-        System.out.print("Enter file path of youtube list: ");
+        String defaultFilePath = configuration.getValue(DEFAULT_LIST_FILE);
+        System.out.print("[Default = "+defaultFilePath+"]Enter file path of youtube list: ");
         String filePath = scanner.nextLine();
 
+        if(filePath.equals("")) filePath = defaultFilePath;
+
         ArrayList<String> links = FileIO.read(filePath);
-        if(links.size()==0)return;
+        if(links.size()==0){
+            System.out.println("no youtube links in file "+defaultFilePath);
+        };
 
         System.out.print("Enter resolution : 360?480?720?1080?best? ; best for faster download : ");
         String resolution = scanner.nextLine();
 
         for(String link : links){
-            downloadVideoMP4(link, resolution, false);
+            checkAndDownloadVideoMP4(link, resolution, false);
         }
+    }
+
+    private void logHistory(String link) {
+        ArrayList<String> ids = FileIO.read(historyFilePath);
+        ids.add(link);
+        FileIO.write(ids,historyFilePath);
+    }
+
+    private boolean shouldDownload(String link) {
+        boolean newVideoConfig = Boolean.parseBoolean(configuration.getValue(ONLY_NEW_VIDEOS_KEY));
+        if(!newVideoConfig) return true; //download all vids
+        if(linkInHistory(link)){
+            return false;
+        }
+        return true;
+
+    }
+
+    private boolean linkInHistory(String link) {
+        ArrayList<String> ids = FileIO.read(historyFilePath);
+        return ids.contains(link);
     }
 
     private void changeConfig() {
@@ -189,18 +218,24 @@ public class YoutubeDownloader {
         return true;
     }
 
-    public void downloadVideoMP4(boolean isPlaylist) {
+    public void checkAndDownloadVideoMP4(boolean isPlaylist) {
         System.out.print("Enter YouTube video URL: ");
         String videoUrl = scanner.nextLine();
 
         System.out.print("Enter resolution : 360?480?720?1080?best? ; best for faster download : ");
         String resolution = scanner.nextLine();
 
-        downloadVideoMP4(videoUrl, resolution, isPlaylist);
+        checkAndDownloadVideoMP4(videoUrl, resolution, isPlaylist);
 
     }
 
-    private void downloadVideoMP4(String videoUrl, String resolution, boolean isPlaylist){
+    private boolean checkAndDownloadVideoMP4(String videoUrl, String resolution, boolean isPlaylist){
+
+        if(!shouldDownload(videoUrl)){
+            System.out.println("You have already downloaded before : "+videoUrl);
+            return false;
+        }
+
         String format = selectBestCode(videoUrl, resolution);
 
         String playlist = "--no-playlist";
@@ -208,16 +243,21 @@ public class YoutubeDownloader {
         String[] command = {"youtube-dl", "-f", "mp4", "-f", format, playlist, "-o", this.configuration.getOutput(), videoUrl};
 
         this.output = "";
-        downloadVideo(command);
+        boolean result = downloadVideo(command);
+
+        if(result) logHistory(videoUrl);
+        return result;
     }
 
-    private void downloadVideo(String[] command){
+    private boolean downloadVideo(String[] command){
         boolean result = runCmd(String.join(" ", command));
         if (result) {
             System.out.println("Video downloaded successfully at :"+this.output);
         } else {
             System.out.println("Failed to download video.");
         }
+        System.out.println("End download : "+(new Date()));
+        return result;
     }
 
     public void downloadVideoMP3() {
