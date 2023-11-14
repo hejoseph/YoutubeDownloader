@@ -5,9 +5,14 @@ import com.joseph.youtube.config.FileIO;
 import com.joseph.youtube.config.Timer;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class YoutubeDownloader {
 
@@ -31,6 +36,15 @@ public class YoutubeDownloader {
 
     public static void main(String[] args) {
         YoutubeDownloader yt = new YoutubeDownloader();
+    }
+
+    public static String extractPercentage(String input){
+        Pattern pattern = Pattern.compile("(\\d+\\.\\d+)%");
+        Matcher matcher = pattern.matcher(input);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "";
     }
 
     public void start(){
@@ -196,6 +210,7 @@ public class YoutubeDownloader {
     }
 
     public boolean runCmd(String cmd){
+        String percentage = "";
         try {
             String line;
             System.out.println("running cmd : "+cmd);
@@ -208,31 +223,66 @@ public class YoutubeDownloader {
                 if(line.contains(word) && this.output.equals("")){
                     this.output = line.substring(0+word.length(), line.length());
                 }
+                String temp = extractPercentage(line);
+                if(!temp.equals("")){
+                    percentage = temp;
+                }
             }
             input.close();
         } catch (Exception err) {
             err.printStackTrace();
             return false;
         }
-        if(this.output.equals(""))return false;
+
+
+        if(this.output.equals("")||!percentage.equals("100.0"))return false;
         return true;
     }
 
     public void checkAndDownloadVideoMP4(boolean isPlaylist) {
         System.out.print("Enter YouTube video URL: ");
-        String videoUrl = scanner.nextLine();
+        String videoUrlInput = scanner.nextLine();
 
         System.out.print("Enter resolution : 360?480?720?1080?best? ; best for faster download : ");
         String resolution = scanner.nextLine();
 
-        checkAndDownloadVideoMP4(videoUrl, resolution, isPlaylist);
+        checkAndDownloadVideoMP4(videoUrlInput, resolution, isPlaylist);
 
     }
 
-    private boolean checkAndDownloadVideoMP4(String videoUrl, String resolution, boolean isPlaylist){
+    private boolean checkAndDownloadVideoMP4(String videoUrlInput, String resolution, boolean isPlaylist){
 
+        Video video = Video.fromURL(videoUrlInput);
+        String videoUrl = "https://www.youtube.com/watch?v="+video.getId();
         if(!shouldDownload(videoUrl)){
             System.out.println("You have already downloaded before : "+videoUrl);
+            return false;
+        }
+
+
+        String outputFolder = this.configuration.getOutput();
+        if(video.getFolder()!=null){
+            File dir = new File(this.configuration.getDestinationFolderName()+video.getFolder());
+            if(!dir.exists()){
+                try {
+                    String path = dir.getPath();
+                    Files.createDirectories(Path.of(path));
+                    System.out.println(path+ " : Folder and its parents created successfully.");
+                } catch (IOException e) {
+                    // Handle the exception if something goes wrong
+                    System.err.println("Error creating folder: " + e.getMessage());
+                    return false;
+                }
+            }
+            outputFolder = this.configuration.getDestinationFolderName()+"\\"+video.getFolder()+"\\"+this.configuration.getDownloadedFileName();
+        }
+
+        if(video.getQuality()!=null){
+            resolution = video.getQuality();
+        }
+
+        if(resolution.equals("")){
+            System.out.println("Canceled, no resolution for the video : "+videoUrlInput);
             return false;
         }
 
@@ -240,7 +290,7 @@ public class YoutubeDownloader {
 
         String playlist = "--no-playlist";
         if(isPlaylist) playlist = "--yes-playlist";
-        String[] command = {"youtube-dl", "-f", "mp4", "-f", format, playlist, "-o", this.configuration.getOutput(), videoUrl};
+        String[] command = {"youtube-dl", "-f", "mp4", "-f", format, playlist, "-o", outputFolder, videoUrl};
 
         this.output = "";
         boolean result = downloadVideo(command);

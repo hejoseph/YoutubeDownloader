@@ -5,6 +5,7 @@ A simple YouTube video downloader written in Java.
 ## Description
 
 This Java program allows you to download YouTube videos in MP4 and MP3 formats. It provides options to choose the resolution for MP4 downloads, and you can download individual videos, entire playlists, or a list of videos from a text file.
+It also saves a history of all videos downloaded before to avoid re-downloading it.
 
 ## Features
 
@@ -36,7 +37,7 @@ These instructions will help you get a copy of the project up and running on you
 
 - Upon running the program, you will be prompted to select from various options to download YouTube videos or change configuration settings. Here are some example outputs:
 
-```java
+```
 --------------------------------
 Configuration settings
 destinationFolderName: C:\workspace\stream\youtube\
@@ -139,3 +140,14 @@ YouTube Video Downloader
 4. Download list of videos from text file and choose resolution
 5. Change Configuration Settings
 Enter your choice: 
+```
+
+## Example when using a list file :
+
+```sh
+https://www.youtube.com/watch?v=vmZ83FRwzpY;f=news;q=1080
+``` 
+
+When using option 4, then specify a text file with the previous content :
+- It will download the video in 1080 format, in the folder $DESTINATION_FOLDER_NAME\news.
+Basically, params in file will override the params in the configuration.
