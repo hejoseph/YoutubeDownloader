@@ -58,7 +58,7 @@ public class Video {
     }
 
     // Helper method to get query parameters from URI
-    private static Map<String, String> getParams(String p) {
+    public static Map<String, String> getParams(String p) {
         Map<String, String> params = new HashMap<>();
         String[] pairs = p.split(";");
         for (String pair : pairs) {

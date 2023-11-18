@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -103,8 +104,18 @@ public class YoutubeDownloader {
         String resolution = scanner.nextLine();
 
         for(String link : links){
-            checkAndDownloadVideoMP4(link, resolution, false);
+            if(link.startsWith("f=")){
+                presetParams(link);
+            }else if(link.startsWith("https://www.youtube.com/watch?v")){
+                checkAndDownloadVideoMP4(link, resolution, false);
+            }
         }
+    }
+
+    private void presetParams(String paramString) {
+        Map<String, String> params = Video.getParams(paramString);
+        this.configuration.setQuality(params.get("q"));
+        this.configuration.setFolder(params.get("f"));
     }
 
     private void logHistory(String link) {
@@ -262,7 +273,7 @@ public class YoutubeDownloader {
 
         String outputFolder = this.configuration.getOutput();
         if(video.getFolder()!=null){
-            File dir = new File(this.configuration.getDestinationFolderName()+video.getFolder());
+            File dir = new File(this.configuration.getDestinationFolderName()+"\\"+video.getFolder());
             if(!dir.exists()){
                 try {
                     String path = dir.getPath();
@@ -279,6 +290,28 @@ public class YoutubeDownloader {
 
         if(video.getQuality()!=null){
             resolution = video.getQuality();
+        }
+
+        if(video.getQuality()==null && video.getFolder()==null){
+            String configFolder = this.configuration.getFolder();
+            String configQuality = this.configuration.getQuality();
+            boolean headerConfig = configFolder!=null && configQuality!=null;
+            if(headerConfig){
+                File dir = new File(this.configuration.getDestinationFolderName()+"\\"+configFolder);
+                if(!dir.exists()){
+                    try {
+                        String path = dir.getPath();
+                        Files.createDirectories(Path.of(path));
+                        System.out.println(path+ " : Folder and its parents created successfully.");
+                    } catch (IOException e) {
+                        // Handle the exception if something goes wrong
+                        System.err.println("Error creating folder: " + e.getMessage());
+                        return false;
+                    }
+                }
+                outputFolder = this.configuration.getDestinationFolderName()+"\\"+configFolder+"\\"+this.configuration.getDownloadedFileName();
+                resolution = configQuality;
+            }
         }
 
         if(resolution.equals("")){

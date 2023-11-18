@@ -36,7 +36,9 @@ public class FileIO {
         try{
             Scanner sc=new Scanner(file);
             while(sc.hasNextLine()){
-                contents.add(sc.nextLine());
+                String line = sc.nextLine();
+                if(line.equals("")) continue;
+                contents.add(line);
             }
             sc.close();
         }

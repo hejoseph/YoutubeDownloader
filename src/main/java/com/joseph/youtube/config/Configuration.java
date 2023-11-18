@@ -13,6 +13,9 @@ public class Configuration {
     private String destinationFolderName = "C:\\workspace\\stream\\youtube\\";
     private String downloadedFileName = "%(channel)s-%(upload_date)s-%(title)s\\ -\\ %(resolution)s.%(ext)s";
 
+    private String quality;
+    private String folder;
+
     private Scanner scanner;
 
     public Configuration(String configFile, Scanner scanner) {
@@ -31,6 +34,22 @@ public class Configuration {
 
     public void setDestinationFolderName(String destinationFolderName) {
         this.destinationFolderName = destinationFolderName;
+    }
+
+    public String getQuality() {
+        return quality;
+    }
+
+    public void setQuality(String quality) {
+        this.quality = quality;
+    }
+
+    public String getFolder() {
+        return folder;
+    }
+
+    public void setFolder(String folder) {
+        this.folder = folder;
     }
 
     public String getDownloadedFileName() {

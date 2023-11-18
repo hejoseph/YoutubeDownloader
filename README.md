@@ -145,9 +145,19 @@ Enter your choice:
 ## Example when using a list file :
 
 ```sh
-https://www.youtube.com/watch?v=vmZ83FRwzpY;f=news;q=1080
+https://www.youtube.com/watch?v=abcdegh;f=news;q=1080
 ``` 
 
 When using option 4, then specify a text file with the previous content :
 - It will download the video in 1080 format, in the folder $DESTINATION_FOLDER_NAME\news.
 Basically, params in file will override the params in the configuration.
+
+```sh
+f=news;q=1080
+https://www.youtube.com/watch?v=abcdegh
+https://www.youtube.com/watch?v=abcdegh1
+https://www.youtube.com/watch?v=abcdegh2
+https://www.youtube.com/watch?v=abcdegh3
+``` 
+
+Or you can just specify the params, and all videos will have the same folder and quality
