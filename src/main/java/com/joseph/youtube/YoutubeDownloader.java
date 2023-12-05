@@ -149,13 +149,15 @@ public class YoutubeDownloader {
             return "best";
         }
         String audioCode = "";
-        String videoCode1080 = "";
-        String videoCode720 = "";
-        String videoCode480 = "";
-        String videoCode360 = "";
+        String bestCode = "";
+        int maxQuality = 0;
+
+
         try {
             String line;
-            Process p = Runtime.getRuntime().exec("youtube-dl -F "+link);
+            String command = "youtube-dl -F "+link;
+            System.out.println("running command : "+command);
+            Process p = Runtime.getRuntime().exec(command);
             BufferedReader input =
                     new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((line = input.readLine()) != null) {
@@ -164,18 +166,22 @@ public class YoutubeDownloader {
                 }
                 System.out.println(line); //<-- Parse data here.
                 String code = line.substring(0,3).trim();
-                if(line.contains("audio only") && line.contains("m4a")){
-                    audioCode = code;
+
+
+                if(line.contains("audio only")){
+                    if(line.contains("m4a")){
+                        audioCode = code;
+                    }
                 }else{
                     if(line.contains("mp4")){
-                        if(line.contains("1080p")){
-                            videoCode1080 = code;
-                        }else if(line.contains("720p")){
-                            videoCode720 = code;
-                        }else if(line.contains("480p")){
-                            videoCode480 = code;
-                        }else if(line.contains("360p")){
-                            videoCode360 = code;
+                        if(line.contains(resolution+"p")){
+                            bestCode = code;
+                            break;
+                        }
+                        int quality = getQuality(line);
+                        if(quality>=maxQuality) {
+                            maxQuality=quality;
+                            bestCode = code;
                         }
                     }
                 }
@@ -187,36 +193,49 @@ public class YoutubeDownloader {
 
         String result = "";
 
-        if(!resolution.equals("")){
-            if(resolution.equals("1080") && !videoCode1080.equals("")){
-                result = videoCode1080;
-            } else if(resolution.equals("720") && !videoCode720.equals("")){
-                result = videoCode720;
-            } else if(resolution.equals("480") && !videoCode480.equals("")){
-                result = videoCode480;
-            } else if(resolution.equals("360") && !videoCode360.equals("")){
-                result = videoCode360;
-            }
-        }
 
-        if(result.equals("")){
-            if(!videoCode1080.equals("")){
-                result = videoCode1080;
-            } else if(!videoCode720.equals("")){
-                result = videoCode720;
-            } else if(!videoCode480.equals("")){
-                result = videoCode480;
-            } else if(!videoCode360.equals("")){
-                result = videoCode360;
-            }
-        }
+//        if(!resolution.equals("")){
+//            if(resolution.equals("1080") && !videoCode1080.equals("")){
+//                result = videoCode1080;
+//            } else if(resolution.equals("720") && !videoCode720.equals("")){
+//                result = videoCode720;
+//            } else if(resolution.equals("480") && !videoCode480.equals("")){
+//                result = videoCode480;
+//            } else if(resolution.equals("360") && !videoCode360.equals("")){
+//                result = videoCode360;
+//            }
+//        }
 
-        if(audioCode.equals("")){
+//        if(result.equals("")){
+//            if(!videoCode1080.equals("")){
+//                result = videoCode1080;
+//            } else if(!videoCode720.equals("")){
+//                result = videoCode720;
+//            } else if(!videoCode480.equals("")){
+//                result = videoCode480;
+//            } else if(!videoCode360.equals("")){
+//                result = videoCode360;
+//            }
+//        }
+
+
+
+
+
+        if(audioCode.equals("") ||bestCode.equals("")){
             result = "best";
         }else{
-            result += "+"+audioCode;
+            result = bestCode+"+"+audioCode;
         }
 
+        return result;
+    }
+
+    private int getQuality(String line) {
+        int result = 0;
+        String[] arr = line.split("\\s+");
+        String[] resolutions = arr[2].split("x");
+        result = Integer.parseInt(resolutions[1]);
         return result;
     }
 
