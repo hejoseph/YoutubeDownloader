@@ -39,6 +39,15 @@ public class YoutubeDownloader {
         YoutubeDownloader yt = new YoutubeDownloader();
     }
 
+    private String selectCodeFromLine(String s){
+        s = s.trim();
+        int index = s.indexOf(" ");
+        if (index != -1) {
+            return s.substring(0, index);
+        }
+        return "";
+    }
+
     public static String extractPercentage(String input){
         Pattern pattern = Pattern.compile("(\\d+\\.\\d+)%");
         Matcher matcher = pattern.matcher(input);
@@ -165,7 +174,7 @@ public class YoutubeDownloader {
                     continue;
                 }
                 System.out.println(line); //<-- Parse data here.
-                String code = line.substring(0,3).trim();
+                String code = selectCodeFromLine(line);
 
 
                 if(line.contains("audio only")){
