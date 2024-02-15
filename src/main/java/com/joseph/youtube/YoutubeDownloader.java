@@ -4,6 +4,7 @@ import com.joseph.youtube.config.Configuration;
 import com.joseph.youtube.config.FileIO;
 import com.joseph.youtube.config.Timer;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,6 +59,12 @@ public class YoutubeDownloader {
     }
 
     public void start(){
+        String path = new File(configuration.getValue(DEFAULT_LIST_FILE)).getAbsolutePath();
+        try{
+            Desktop.getDesktop().open(new File(path));
+        }catch(Exception e){
+            System.out.println(String.format("cannot open file %s", path));
+        }
         while (true) {
             System.out.println("--------------------------");
             System.out.println("YouTube Video Downloader");
